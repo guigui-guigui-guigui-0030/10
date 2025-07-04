@@ -1,0 +1,14 @@
+{
+  "name": "line-knowledge-base",
+  "version": "1.0.0",
+  "description": "LINE AI BOT 專業職人知識資料庫",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "serve public",
+    "build": "echo 'No build needed for static site'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
