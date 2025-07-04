@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LINE AI BOT 專業職人知識資料庫</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #00C300 0%, #00B900 50%, #00A000 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .line-logo {
+            width: 60px;
+            height: 60px;
+            background: #00C300;
+            border-radius: 15px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #00C300;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #00C300, #00B900);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+            .section:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            }
+
+            .section h2 {
+                color: #00C300;
+                font-size: 1.5em;
+                margin-bottom: 20px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .icon {
+            width: 25px;
+            height: 25px;
+            background: #00C300;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 3px dashed #00C300;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: rgba(0, 195, 0, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+            .upload-area:hover {
+                background: rgba(0, 195, 0, 0.1);
+                border-color: #00B900;
+            }
+
+            .upload-area.drag-over {
+                background: rgba(0, 195, 0, 0.15);
+                border-color: #00A000;
+            }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #00C300;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00C300, #00B900);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(0, 195, 0, 0.3);
+            }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #495057;
+        }
+
+            .btn-secondary:hover {
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #00C300, #00B900);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+            .stat-card:hover {
+                transform: scale(1.05);
+            }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .knowledge-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .knowledge-item {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s ease;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+            .knowledge-item:hover {
+                background: rgba(0, 195, 0, 0.05);
+            }
+
+            .knowledge-item:last-child {
+                border-bottom: none;
+            }
+
+        .knowledge-info {
+            flex: 1;
+        }
+
+        .knowledge-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .knowledge-meta {
+            font-size: 0.85em;
+            color: #666;
+            display: flex;
+            gap: 15px;
+        }
+
+        .knowledge-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .edit-btn {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .category-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .category-tag {
+            background: rgba(0, 195, 0, 0.1);
+            color: #00C300;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            border: 1px solid rgba(0, 195, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+            .category-tag:hover,
+            .category-tag.active {
+                background: #00C300;
+                color: white;
+            }
+
+        .search-bar {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1em;
+            margin-bottom: 20px;
+            transition: border-color 0.3s ease;
+        }
+
+            .search-bar:focus {
+                outline: none;
+                border-color: #00C300;
+            }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: none;
+            font-size: 1em;
+        }
+
+            .tab.active {
+                background: #00C300;
+                color: white;
+            }
+
+        .tab-content {
+            display: none;
+        }
+
+            .tab-content.active {
+                display: block;
+            }
+
+        .chart-container {
+            width: 100%;
+            height: 300px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            margin-top: 15px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00C300, #00B900);
+            transition: width 0.3s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .close {
+            float: right;
+            font-size: 28px;
+            cursor: pointer;
+            color: #aaa;
+        }
+
+            .close:hover {
+                color: #000;
+            }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: #333;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                font-size: 1em;
+                transition: border-color 0.3s ease;
+            }
+
+                .form-group input:focus,
+                .form-group select:focus,
+                .form-group textarea:focus {
+                    outline: none;
+                    border-color: #00C300;
+                }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+            .alert.success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+
+            .alert.error {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="line-logo">L</div>
+            <h1>LINE AI BOT 專業職人知識資料庫</h1>
+            <p class="subtitle">專為專業職人打造的智能知識管理系統</p>
+            <div class="user-info">
+                <span id="userAccount">👤 房仲專家 - 張小明 (@zhang_realestate)</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 上傳知識區域 -->
+            <div class="section">
+                <h2>
+                    <span class="icon">📤</span>
+                    上傳專業知識
+                </h2>
+
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <p><strong>拖拽文件到此處或點擊上傳</strong></p>
+                    <p>支援 PDF, DOC, TXT, MD 格式</p>
+                    <p>單檔最大 10MB</p>
+                </div>
+
+                <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.txt,.md" style="display: none;">
+
+                <div class="form-group">
+                    <label for="knowledgeCategory">知識分類</label>
+                    <select id="knowledgeCategory">
+                        <option value="">選擇分類</option>
+                        <option value="property-law">房地產法規</option>
+                        <option value="market-analysis">市場分析</option>
+                        <option value="negotiation">談判技巧</option>
+                        <option value="valuation">估價方法</option>
+                        <option value="customer-service">客戶服務</option>
+                        <option value="contracts">合約範本</option>
+                        <option value="tax-info">稅務資訊</option>
+                        <option value="area-knowledge">區域知識</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="knowledgeTags">標籤 (用逗號分隔)</label>
+                    <input type="text" id="knowledgeTags" placeholder="例：預售屋, 實價登錄, 首購">
+                </div>
+
+                <button class="btn" onclick="uploadKnowledge()">
+                    <span>📤</span> 上傳知識
+                </button>
+            </div>
+
+            <!-- 個人統計分析 -->
+            <div class="section">
+                <h2>
+                    <span class="icon">📊</span>
+                    我的知識庫統計
+                </h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalKnowledge">47</div>
+                        <div class="stat-label">總知識條目</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="categoriesCount">8</div>
+                        <div class="stat-label">知識分類</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="todayUploads">3</div>
+                        <div class="stat-label">今日上傳</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="weeklyUploads">12</div>
+                        <div class="stat-label">本週上傳</div>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <button class="tab active" onclick="showTab('overview')">總覽</button>
+                    <button class="tab" onclick="showTab('categories')">分類分析</button>
+                    <button class="tab" onclick="showTab('timeline')">時間趨勢</button>
+                </div>
+
+                <div id="overview" class="tab-content active">
+                    <h4>知識庫完整度</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 78%"></div>
+                    </div>
+                    <p style="font-size: 0.9em; color: #666; margin-top: 5px;">78% - 建議補充稅務資訊相關知識</p>
+
+                    <h4 style="margin-top: 20px;">最近活動</h4>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                        <p>• 上傳了「2024年房地合一稅新制說明」</p>
+                        <p>• 更新了「首購優惠貸款方案」</p>
+                        <p>• 新增了「信義區房市分析報告」</p>
+                    </div>
+                </div>
+
+                <div id="categories" class="tab-content">
+                    <div class="chart-container">
+                        📊 知識分類分布圖
+                        <br><small>房地產法規 (32%) | 市場分析 (25%) | 談判技巧 (18%) | 其他 (25%)</small>
+                    </div>
+                </div>
+
+                <div id="timeline" class="tab-content">
+                    <div class="chart-container">
+                        📈 上傳時間趨勢圖
+                        <br><small>顯示過去30天的知識上傳活動</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 知識管理 -->
+            <div class="section full-width">
+                <h2>
+                    <span class="icon">📚</span>
+                    我的知識庫管理
+                </h2>
+
+                <input type="text" class="search-bar" placeholder="🔍 搜尋知識內容..." id="searchInput" oninput="filterKnowledge()">
+
+                <div class="category-tags">
+                    <div class="category-tag active" data-category="all">全部</div>
+                    <div class="category-tag" data-category="property-law">房地產法規</div>
+                    <div class="category-tag" data-category="market-analysis">市場分析</div>
+                    <div class="category-tag" data-category="negotiation">談判技巧</div>
+                    <div class="category-tag" data-category="valuation">估價方法</div>
+                    <div class="category-tag" data-category="customer-service">客戶服務</div>
+                    <div class="category-tag" data-category="contracts">合約範本</div>
+                    <div class="category-tag" data-category="tax-info">稅務資訊</div>
+                </div>
+
+                <div class="knowledge-list" id="knowledgeList">
+                    <!-- 知識條目將在這裡動態生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編輯模態框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>編輯知識條目</h2>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editTitle">標題</label>
+                    <input type="text" id="editTitle">
+                </div>
+                <div class="form-group">
+                    <label for="editCategory">分類</label>
+                    <select id="editCategory">
+                        <option value="property-law">房地產法規</option>
+                        <option value="market-analysis">市場分析</option>
+                        <option value="negotiation">談判技巧</option>
+                        <option value="valuation">估價方法</option>
+                        <option value="customer-service">客戶服務</option>
+                        <option value="contracts">合約範本</option>
+                        <option value="tax-info">稅務資訊</option>
+                        <option value="area-knowledge">區域知識</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editTags">標籤</label>
+                    <input type="text" id="editTags">
+                </div>
+                <div class="form-group">
+                    <label for="editContent">內容摘要</label>
+                    <textarea id="editContent" rows="4"></textarea>
+                </div>
+                <button type="button" class="btn" onclick="saveEdit()">💾 儲存</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">取消</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 提示訊息 -->
+    <div id="alert" class="alert"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBYv83ICgGRLwJuUjDxsSOELe5_7KRDbCE",
+            authDomain: "react-1-389510.firebaseapp.com",
+            projectId: "react-1-389510",
+            storageBucket: "react-1-389510.firebasestorage.app",
+            messagingSenderId: "321369806515",
+            appId: "1:321369806515:web:6909c4bcafd487515e82c6",
+            measurementId: "G-NTNHDTZFMP"
+        };
+
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 全域變數
+        window.firebaseDb = db;
+    </script>
+
+
+
+    <script>
+
+        let app, db;
+
+        function initializeFirebase() {
+            if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+                app = firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                return true;
+            } else if (typeof firebase !== 'undefined' && firebase.apps.length > 0) {
+                app = firebase.app();
+                db = firebase.firestore();
+                return true;
+            }
+            return false;
+        }
+
+
+
+        let knowledgeData = [
+            {
+                id: 1,
+                title: "2024年房地合一稅新制重點整理",
+                category: "tax-info",
+                tags: ["房地合一", "稅制", "2024"],
+                uploadDate: "2024-06-25",
+                fileSize: "2.3MB",
+                content: "詳細說明2024年房地合一稅的計算方式與優惠條件..."
+            },
+            {
+                id: 2,
+                title: "台北市信義區Q2房市分析報告",
+                category: "market-analysis",
+                tags: ["信義區", "房市分析", "Q2"],
+                uploadDate: "2024-06-24",
+                fileSize: "5.1MB",
+                content: "信義區第二季房價走勢分析，包含成交量與價格趨勢..."
+            },
+            {
+                id: 3,
+                title: "首購族貸款優惠方案比較表",
+                category: "customer-service",
+                tags: ["首購", "貸款", "優惠"],
+                uploadDate: "2024-06-23",
+                fileSize: "1.8MB",
+                content: "整理各大銀行首購優惠貸款方案的利率與條件比較..."
+            },
+            {
+                id: 4,
+                title: "買賣契約書範本及注意事項",
+                category: "contracts",
+                tags: ["契約", "範本", "買賣"],
+                uploadDate: "2024-06-22",
+                fileSize: "3.7MB",
+                content: "標準買賣契約書範本，包含各項條款說明與填寫注意事項..."
+            },
+            {
+                id: 5,
+                title: "房屋估價方法與實務應用",
+                category: "valuation",
+                tags: ["估價", "方法", "實務"],
+                uploadDate: "2024-06-21",
+                fileSize: "4.2MB",
+                content: "房屋估價的三大方法：比較法、成本法、收益法的詳細說明..."
+            }
+        ];
+
+        let currentEditId = null;
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            // 等待 Firebase 載入完成
+            const checkFirebase = setInterval(() => {
+                if (initializeFirebase()) {
+                    clearInterval(checkFirebase);
+                    loadKnowledgeFromFirestore();
+                    setupEventListeners();
+                } else {
+                    // 如果 Firebase 載入失敗，使用本地數據
+                    console.log('Firebase 載入中...');
+                }
+            }, 100);
+
+            // 超時處理，如果 Firebase 無法載入則使用本地功能
+            setTimeout(() => {
+                if (!db) {
+                    console.warn('Firebase 載入失敗，使用本地模式');
+                    setupEventListeners();
+                    renderKnowledgeList();
+                    updateStats();
+                }
+            }, 5000);
+        });
+
+        // 設置事件監聽器
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            uploadArea.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drag-over');
+            });
+
+            fileInput.addEventListener('change', function (e) {
+                const files = e.target.files;
+                if (files.length > 0) {
+                    handleFiles(files);
+                }
+            });
+
+            // 分類標籤點擊
+            document.querySelectorAll('.category-tag').forEach(tag => {
+                tag.addEventListener('click', function () {
+                    document.querySelector('.category-tag.active').classList.remove('active');
+                    this.classList.add('active');
+                    filterKnowledge();
+                });
+            });
+        }
+
+        // 處理拖拽上傳
+        async function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        async function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const files = e.dataTransfer.files;
+            handleFiles(files);
+        }
+
+        async function handleFiles(files) {
+            for (let file of files) {
+                try {
+                    showAlert('正在處理文件：' + file.name, 'success');
+                    const text = await extractTextFromFile(file);
+                    await uploadToFirestore(file.name, text, file.size);
+                } catch (error) {
+                    showAlert('處理文件失敗：' + file.name + ' - ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function extractTextFromFile(file) {
+            const fileType = file.type;
+            const fileName = file.name.toLowerCase();
+
+            if (fileType === 'text/plain' || fileName.endsWith('.txt') || fileName.endsWith('.md')) {
+                return await file.text();
+            } else if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+                return await extractPdfText(file);
+            } else if (fileType.includes('word') || fileName.endsWith('.doc') || fileName.endsWith('.docx')) {
+                return await extractWordText(file);
+            }
+            return '無法提取文字內容';
+        }
+
+        async function extractPdfText(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            let text = '';
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                text += content.items.map(item => item.str).join(' ');
+            }
+            return text;
+        }
+
+        async function extractWordText(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            return result.value;
+        }
+
+
+        // 上傳知識
+        async function uploadKnowledge() {
+            const category = document.getElementById('knowledgeCategory').value;
+            const tags = document.getElementById('knowledgeTags').value;
+
+            if (!category) {
+                showAlert('請選擇知識分類', 'error');
+                return;
+            }
+
+            try {
+                await db.collection('knowledge').add({
+                    title: '手動輸入標題',
+                    category: category,
+                    tags: tags.split(',').map(tag => tag.trim()),
+                    content: '手動輸入內容',
+                    uploadDate: new Date().toISOString().split('T')[0],
+                    fileSize: '0KB',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showAlert('知識上傳成功！', 'success');
+                loadKnowledgeFromFirestore();
+
+                // 清空表單
+                document.getElementById('knowledgeCategory').value = '';
+                document.getElementById('knowledgeTags').value = '';
+            } catch (error) {
+                showAlert('上傳失敗：' + error.message, 'error');
+            }
+        }
+
+        async function uploadToFirestore(filename, content, fileSize) {
+            const category = document.getElementById('knowledgeCategory').value || 'other';
+            const tags = document.getElementById('knowledgeTags').value;
+
+            try {
+                await db.collection('knowledge').add({
+                    title: filename,
+                    category: category,
+                    tags: tags.split(',').map(tag => tag.trim()),
+                    content: content,
+                    uploadDate: new Date().toISOString().split('T')[0],
+                    fileSize: Math.round(fileSize / 1024) + 'KB',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showAlert(`檔案 ${filename} 上傳成功！`, 'success');
+                loadKnowledgeFromFirestore();
+            } catch (error) {
+                showAlert('上傳失敗：' + error.message, 'error');
+            }
+        }
+
+        async function loadKnowledgeFromFirestore() {
+            try {
+                const snapshot = await db.collection('knowledge').orderBy('timestamp', 'desc').get();
+                knowledgeData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                renderKnowledgeList();
+                updateStats();
+            } catch (error) {
+                console.error('載入資料失敗：', error);
+                // 如果 Firebase 載入失敗，使用模擬數據
+                renderKnowledgeList();
+                updateStats();
+            }
+        }
+
+
+        // 渲染知識列表
+        async function renderKnowledgeList() {
+            const list = document.getElementById('knowledgeList');
+            const activeCategory = document.querySelector('.category-tag.active').dataset.category;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            let filteredData = knowledgeData;
+
+            if (activeCategory !== 'all') {
+                filteredData = filteredData.filter(item => item.category === activeCategory);
+            }
+
+            if (searchTerm) {
+                filteredData = filteredData.filter(item =>
+                    item.title.toLowerCase().includes(searchTerm) ||
+                    item.content.toLowerCase().includes(searchTerm) ||
+                    item.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            list.innerHTML = filteredData.map(item => `
+    <div class="knowledge-item">
+        <div class="knowledge-info">
+            <div class="knowledge-title">${item.title}</div>
+            <div class="knowledge-meta">
+                <span>📅 ${item.uploadDate}</span>
+                <span>📁 ${getCategoryName(item.category)}</span>
+                <span>📊 ${item.fileSize}</span>
+                <span>🏷️ ${item.tags.join(', ')}</span>
+            </div>
+        </div>
+        <div class="knowledge-actions">
+            <button class="action-btn edit-btn" onclick="editKnowledge('${item.id}')">✏️ 編輯</button>
+            <button class="action-btn delete-btn" onclick="deleteKnowledge('${item.id}')">🗑️ 刪除</button>
+        </div>
+    </div>
+`).join('');
+        }
+
+        // 獲取分類名稱
+        async function getCategoryName(category) {
+            const categoryNames = {
+                'property-law': '房地產法規',
+                'market-analysis': '市場分析',
+                'negotiation': '談判技巧',
+                'valuation': '估價方法',
+                'customer-service': '客戶服務',
+                'contracts': '合約範本',
+                'tax-info': '稅務資訊',
+                'area-knowledge': '區域知識'
+            };
+            return categoryNames[category] || category;
+        }
+
+        // 過濾知識
+        async function filterKnowledge() {
+            renderKnowledgeList();
+        }
+
+        // 編輯知識
+        async function editKnowledge(id) {
+            const item = knowledgeData.find(k => k.id === id);
+            if (!item) return;
+
+            currentEditId = id;
+            document.getElementById('editTitle').value = item.title;
+            document.getElementById('editCategory').value = item.category;
+            document.getElementById('editTags').value = item.tags.join(', ');
+            document.getElementById('editContent').value = item.content;
+
+            document.getElementById('editModal').style.display = 'block';
+        }
+
+        // 儲存編輯
+        async function saveEdit() {
+            if (!currentEditId) return;
+
+            const itemIndex = knowledgeData.findIndex(k => k.id === currentEditId);
+            if (itemIndex === -1) return;
+
+            const updatedData = {
+                title: document.getElementById('editTitle').value,
+                category: document.getElementById('editCategory').value,
+                tags: document.getElementById('editTags').value.split(',').map(tag => tag.trim()),
+                content: document.getElementById('editContent').value
+            };
+
+            try {
+                // 更新 Firestore
+                if (typeof currentEditId === 'string') {
+                    await db.collection('knowledge').doc(currentEditId).update(updatedData);
+                }
+
+                // 更新本地數據
+                knowledgeData[itemIndex] = { ...knowledgeData[itemIndex], ...updatedData };
+
+                renderKnowledgeList();
+                closeModal();
+                showAlert('知識條目更新成功！', 'success');
+            } catch (error) {
+                showAlert('更新失敗：' + error.message, 'error');
+            }
+        }
+
+        // 刪除知識
+        async function deleteKnowledge(id) {
+            if (confirm('確定要刪除這個知識條目嗎？')) {
+                try {
+                    // 從 Firestore 刪除
+                    if (typeof id === 'string') {
+                        await db.collection('knowledge').doc(id).delete();
+                    }
+
+                    // 從本地數據刪除
+                    knowledgeData = knowledgeData.filter(k => k.id !== id);
+                    renderKnowledgeList();
+                    updateStats();
+                    showAlert('知識條目已刪除', 'success');
+                } catch (error) {
+                    showAlert('刪除失敗：' + error.message, 'error');
+                }
+            }
+        }
+
+        // 關閉模態框
+        async function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+            currentEditId = null;
+        }
+
+        // 顯示標籤頁
+        async function showTab(tabName) {
+            // 隱藏所有標籤內容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 移除所有標籤的active類
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 顯示選中的標籤內容
+            document.getElementById(tabName).classList.add('active');
+
+            // 標記選中的標籤
+            event.target.classList.add('active');
+        }
+
+        // 更新統計數據
+        async function updateStats() {
+            document.getElementById('totalKnowledge').textContent = knowledgeData.length;
+
+            // 計算分類數量
+            const categories = [...new Set(knowledgeData.map(item => item.category))];
+            document.getElementById('categoriesCount').textContent = categories.length;
+
+            // 模擬今日和本週上傳數量
+            const today = new Date().toISOString().split('T')[0];
+            const todayUploads = knowledgeData.filter(item => item.uploadDate === today).length;
+            document.getElementById('todayUploads').textContent = todayUploads;
+
+            // 計算本週上傳（簡化計算）
+            const weeklyUploads = Math.min(knowledgeData.length, 12);
+            document.getElementById('weeklyUploads').textContent = weeklyUploads;
+        }
+
+        // 顯示提示訊息
+        async function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert ${type}`;
+            alert.style.display = 'block';
+
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        // 點擊模態框外部關閉
+        window.onclick = function (event) {
+            const modal = document.getElementById('editModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // 新增更多模擬功能
+        async function exportKnowledge() {
+            showAlert('知識庫匯出功能開發中...', 'success');
+        }
+
+        async function importKnowledge() {
+            showAlert('知識庫匯入功能開發中...', 'success');
+        }
+
+        async function syncToCloud() {
+            showAlert('正在同步到雲端...', 'success');
+            setTimeout(() => {
+                showAlert('雲端同步完成！', 'success');
+            }, 2000);
+        }
+
+        // 新增批量操作功能
+        async function selectAll() {
+            const checkboxes = document.querySelectorAll('.knowledge-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+        }
+
+        async function bulkDelete() {
+            const checkboxes = document.querySelectorAll('.knowledge-checkbox:checked');
+            if (checkboxes.length === 0) {
+                showAlert('請選擇要刪除的條目', 'error');
+                return;
+            }
+
+            if (confirm(`確定要刪除選中的 ${checkboxes.length} 個知識條目嗎？`)) {
+                const idsToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.id));
+                knowledgeData = knowledgeData.filter(item => !idsToDelete.includes(item.id));
+                renderKnowledgeList();
+                updateStats();
+                showAlert(`成功刪除 ${idsToDelete.length} 個知識條目`, 'success');
+            }
+        }
+
+        // 新增快捷鍵支援
+        document.addEventListener('keydown', function (e) {
+            // Ctrl+S 儲存
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (currentEditId) {
+                    saveEdit();
+                }
+            }
+
+            // Escape 關閉模態框
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // 初始化數據
+        updateStats();
+    </script>
+</body>
+</html>
